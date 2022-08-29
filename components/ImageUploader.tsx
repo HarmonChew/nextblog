@@ -21,25 +21,22 @@ export default function ImageUploader() {
 
     setUploading(true);
 
-    // Starts the upload
     const task = uploadBytesResumable(fileRef, file);
 
-    // Listen to updates to upload task
     task.on(STATE_CHANGED, (snapshot) => {
       const pct = (
         (snapshot.bytesTransferred / snapshot.totalBytes) *
         100
       ).toFixed(0);
       setProgress(pct);
-    });
 
-    // Get downloadURL AFTER task resolves (Note: this is not a native Promise)
-    task
-      .then((d) => getDownloadURL(fileRef))
-      .then((url: string) => {
-        setDownloadURL(url);
-        setUploading(false);
-      });
+      task
+        .then((d) => getDownloadURL(fileRef))
+        .then((url: string) => {
+          setDownloadURL(url);
+          setUploading(false);
+        });
+    });
   };
 
   return (

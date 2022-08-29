@@ -1,12 +1,13 @@
 import {
   deleteDoc,
   doc,
+  getDoc,
   getFirestore,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDocumentDataOnce } from "react-firebase-hooks/firestore";
 import AuthCheck from "../../components/AuthCheck";
 import { auth } from "../../lib/firebase";
@@ -28,6 +29,7 @@ export default function AdminPostEdit({}) {
 
 const PostManager = () => {
   const [preview, setPreview] = useState(false);
+  const [post, setPost] = useState(null);
 
   const router = useRouter();
   const { slug } = router.query;
@@ -40,7 +42,18 @@ const PostManager = () => {
     slug
   );
 
-  const [post] = useDocumentDataOnce(postRef);
+  // const getPost = async () => {
+  //   const post = await getDoc(postRef);
+  //   return post.data();
+  // };
+
+  // const post = getPost();
+
+  useEffect(() => {
+    getDoc(postRef).then((doc) => {
+      setPost(doc.data());
+    });
+  }, []);
 
   return (
     <main className={styles.container}>
@@ -50,11 +63,7 @@ const PostManager = () => {
             <h1>{post.title}</h1>
             <p>ID: {post.slug}</p>
 
-            <PostForm
-              postRef={postRef}
-              defaultValues={post}
-              preview={preview}
-            />
+            <PostForm postRef={postRef} post={post} preview={preview} />
           </section>
 
           <aside>
@@ -73,7 +82,13 @@ const PostManager = () => {
   );
 };
 
-const PostForm = ({ postRef, defaultValues, preview }) => {
+const PostForm = ({ postRef, post, preview }) => {
+  const preloadedValues = {
+    ...post,
+  };
+
+  console.log(preloadedValues);
+
   const {
     register,
     handleSubmit,
@@ -81,7 +96,7 @@ const PostForm = ({ postRef, defaultValues, preview }) => {
     reset,
     watch,
   } = useForm({
-    defaultValues,
+    defaultValues: preloadedValues,
     mode: "onChange",
   });
 
@@ -109,7 +124,7 @@ const PostForm = ({ postRef, defaultValues, preview }) => {
         <ImageUploader />
 
         <textarea
-          name="content"
+          name="title"
           {...register("content", {
             maxLength: { value: 20000, message: "content is too long" },
             minLength: { value: 10, message: "content is too short" },
